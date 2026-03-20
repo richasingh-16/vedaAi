@@ -1,183 +1,467 @@
-# 💎 VedaAI — AI Assessment Creator
+# VedaAI — AI Assessment Creator
 
-[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js-green?style=for-the-badge&logo=node.js)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/Language-TypeScript-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB-darkgreen?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
-[![Redis](https://img.shields.io/badge/Queue-Redis-red?style=for-the-badge&logo=redis)](https://redis.io/)
-[![BullMQ](https://img.shields.io/badge/Queue-BullMQ-orange?style=for-the-badge)](https://bullmq.io/)
-[![Google Gemini](https://img.shields.io/badge/AI-Gemini%202.0-blue?style=for-the-badge)](https://ai.google.dev/)
-[![Groq](https://img.shields.io/badge/AI-Groq%20Llama%203.3-purple?style=for-the-badge)](https://groq.com/)
-
-**VedaAI** is a full-stack, AI-powered assessment generator designed to help teachers create beautifully structured, high-quality question papers in seconds. By simply specifying a subject, class, and chapter, VedaAI leverages state-of-the-art LLMs (Gemini 2.0 and Groq Llama 3.3) to generate detailed assignments complete with difficulty-tagged questions, comprehensive instructions, and a teacher's answer key.
+A full-stack web application that lets teachers create assignments and automatically generate structured question papers using AI. Fill a form, click generate, and get a fully formatted exam paper with sections, difficulty-tagged questions, and an answer key — in seconds.
 
 ---
 
-## 📖 Table of Contents
-- [✨ Key Features](#-key-features)
-- [🛠️ Tech Stack](#️-tech-stack)
-- [🏗️ System Architecture](#️-system-architecture)
-- [📂 Project Structure](#-project-structure)
-- [🚀 Local Setup & Installation](#-local-setup--installation)
-- [🔌 API Documentation](#-api-documentation)
-- [🤖 AI Inference Strategy](#-ai-inference-strategy)
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Step 1 — Get your API keys](#step-1--get-your-api-keys)
+- [Step 2 — Set up MongoDB and Redis](#step-2--set-up-mongodb-and-redis)
+- [Step 3 — Set up the Backend](#step-3--set-up-the-backend)
+- [Step 4 — Set up the Frontend](#step-4--set-up-the-frontend)
+- [Step 5 — Run everything](#step-5--run-everything)
+- [Step 6 — Test it](#step-6--test-it)
+- [API Reference](#api-reference)
+- [Environment Variables](#environment-variables)
+- [Common Errors](#common-errors)
 
 ---
 
-## ✨ Key Features
-- **Smart Assignment Creation:** 2-step validation-backed form with subject, class, chapter, and flexible question types.
-- **AI-Structured Outputs:** Generates question papers with distinct sections (Section A, B, C, etc.).
-- **Pedagogical Tags:** Every question included is tagged with a difficulty level (**Easy**, **Moderate**, **Challenging**).
-- **Real-Time Synthesis:** Live generation updates via **WebSockets** with a seamless 2-second **Polling Fallback** for maximum reliability.
-- **Fail-Safe AI Inference:** Automatically switches from **Gemini 2.0 Flash** to **Groq Llama 3.3 70B** if the primary API fails.
-- **Professional Formatting:** Download the final output as a print-ready PDF.
-- **Regeneration Engine:** One-click regeneration if you want a new set of questions for the same topic.
-- **Mobile Responsive:** Clean, modern UI that works perfectly across all devices.
+## What it does
+
+1. Teacher fills a form — subject, class, chapter, question types, marks
+2. Clicks **Generate Paper**
+3. Backend queues a background job
+4. AI generates a structured question paper
+5. Paper appears on screen in real time — no page refresh needed
+
+The output is a properly formatted exam paper with:
+- Section A, B, C etc based on question types
+- Each question tagged with difficulty (Easy / Moderate / Challenging)
+- Marks per question
+- Answer key at the bottom
+- Download as PDF option
 
 ---
 
-## 🛠️ Tech Stack
-### **Frontend**
-- **Next.js 14 (App Router)** & **TypeScript**
-- **Tailwind CSS** for premium styling
-- **Zustand** for lightweight state management
-- **Lucide Icons** for smooth visual elements
-- **WebSocket (WS)** for real-time paper generation updates
+## Tech Stack
 
-### **Backend**
-- **Node.js** & **Express** (TypeScript)
-- **MongoDB** with **Mongoose** for data persistence
-- **BullMQ** & **Redis** for asynchronous job processing
-- **Zod** for bulletproof API schema validation
-
-### **Infrastructure & AI**
-- **Docker** for containerized database (MongoDB) and messaging (Redis)
-- **Google Gemini 2.0 Flash API** (Primary AI model)
-- **Groq Llama 3.3 70B API** (Fallback AI model)
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 14, TypeScript, Tailwind CSS |
+| State Management | Zustand |
+| Real-time | WebSocket |
+| Backend | Node.js, Express, TypeScript |
+| Database | MongoDB + Mongoose |
+| Queue | BullMQ + Redis |
+| AI (Primary) | Gemini 2.0 Flash |
+| AI (Fallback) | Groq — Llama 3.3 70B |
+| Infrastructure | Docker |
 
 ---
 
-## 🏗️ System Architecture
-The application follows a distributed event-driven architecture to ensure the main API remains responsive during complex AI generations.
+## Architecture
 
-```mermaid
-graph TD
-    A[Teacher / Frontend] -- 1. Submit Form --> B[Express API]
-    B -- 2. Save Pending Status --> C[(MongoDB)]
-    B -- 3. Enqueue Job --> D[BullMQ Queue]
-    B -- 4. Return Assignment ID --> A
-    D -- 5. Pick up Job --> E[Worker Process]
-    E -- 6. Call AI API --> F{AI Provider}
-    F -- Gemini 2.0 --> G[Success]
-    F -- Gemini Fail --> H[Fallback to Groq Llama 3.3]
-    G & H -- 7. Return JSON Result --> E
-    E -- 8. Update DB Completed --> C
-    E -- 9. Emit WebSocket Event --> I[WebSocket Server]
-    I -- 10. Real-time Result --> A
+```
+Teacher fills form
+        │
+        ▼
+Next.js Frontend (Zustand store)
+        │
+        │  POST /assignments
+        ▼
+Express API (Zod validation)
+        │
+        ├──► Save to MongoDB (status: pending)
+        │
+        └──► Add job to BullMQ queue
+                │
+                ▼
+         BullMQ Worker
+                │
+                ├──► Call Gemini 2.0 Flash
+                │         │ (if fails)
+                │         └──► Fallback to Groq Llama 3.3
+                │
+                ├──► Parse + validate JSON response
+                │
+                ├──► Save result to MongoDB (status: completed)
+                │
+                └──► Emit WebSocket event
+                          │
+                          ▼
+                   Frontend receives event
+                          │
+                          ▼
+                   Paper renders on screen
 ```
 
 ---
 
-## 📂 Project Structure
+## Project Structure
+
+```
+vedaai-phase1/
+  vedaai/                         ← Next.js frontend
+    app/
+      assignments/page.tsx        ← Dashboard
+      create/page.tsx             ← Create assignment form
+      assignment/[id]/page.tsx    ← Output / exam paper
+    components/
+      layout/                     ← Sidebar, Header, MobileNav
+      dashboard/                  ← AssignmentCard, EmptyState
+      create/                     ← FileUpload, QuestionTypeRow
+      output/                     ← DifficultyBadge, GeneratingState
+    hooks/
+      useAssignmentSocket.ts      ← WebSocket hook
+    lib/
+      api.ts                      ← All API calls to backend
+    store/
+      useAssignmentStore.ts       ← Zustand store
+    types/
+      index.ts                    ← TypeScript types
+
+  vedaai-backend/                 ← Express backend
+    src/
+      index.ts                    ← Server entry point
+      config/
+        db.ts                     ← MongoDB connection
+        redis.ts                  ← Redis connection
+      models/
+        Assignment.ts             ← Mongoose schema
+      routes/
+        assignments.ts            ← API routes
+      queues/
+        paperQueue.ts             ← BullMQ queue
+        paperWorker.ts            ← Background job processor
+      services/
+        aiService.ts              ← Gemini + Groq AI calls
+      socket/
+        wsHandler.ts              ← WebSocket event emitter
+      middleware/
+        validate.ts               ← Zod validation middleware
+    docker-compose.yml            ← MongoDB + Redis containers
+```
+
+---
+
+## Prerequisites
+
+Before you start, make sure you have these installed:
+
+- **Node.js** (v18 or higher) — https://nodejs.org
+- **Docker Desktop** — https://www.docker.com/products/docker-desktop
+
+To verify:
 ```bash
-.
-├── vedaai/                   # Next.js Frontend Application
-│   ├── app/                  # App Router: create, assignments, assignment/[id]
-│   ├── components/           # Reusable UI components (dashboard, create, output)
-│   ├── store/                # Zustand global state (assignments, form state)
-│   └── lib/                  # API client, utility functions
-├── vedaai-backend/           # Express Backend Server
-│   ├── src/
-│   │   ├── models/           # Mongoose schemas (Assignment)
-│   │   ├── routes/           # REST API routes (GET, POST, DELETE)
-│   │   ├── queues/           # BullMQ job enqueuing and Worker processing
-│   │   ├── services/         # AI Logic (Gemini/Groq prompts and fallbacks)
-│   │   ├── socket/           # WebSocket event handlers
-│   │   └── index.ts          # Server entry point
-│   ├── docker-compose.yml    # MongoDB and Redis setup
-└── README.md
+node --version    # should show v18 or higher
+docker --version  # should show Docker version
 ```
 
 ---
 
-## 🚀 Local Setup & Installation
+## Step 1 — Get your API keys
 
-### **1. Prerequisites**
-- **Node.js** (v18 or higher)
-- **Docker Desktop** (running for MongoDB and Redis)
-- **API Keys:**
-    - Get Gemini API Key: [aistudio.google.com](https://aistudio.google.com/)
-    - Get Groq API Key: [console.groq.com](https://console.groq.com/)
+You need two free API keys. No credit card required for either.
 
-### **2. Setup Databases**
-In the root directory or `vedaai-backend` directory, run:
+### Gemini API key (Primary AI)
+
+1. Go to https://aistudio.google.com/app/apikey
+2. Sign in with your Google account
+3. Click **Create API Key**
+4. Copy the key — it starts with `AIza...`
+
+### Groq API key (Fallback AI)
+
+1. Go to https://console.groq.com
+2. Sign up for a free account
+3. Go to **API Keys** in the left sidebar
+4. Click **Create API Key**
+5. Copy the key — it starts with `gsk_...`
+
+Keep both keys somewhere safe — you will need them in the next step.
+
+---
+
+## Step 2 — Set up MongoDB and Redis
+
+Instead of installing MongoDB and Redis manually, we use Docker to run them in containers. This takes one command.
+
+### Install and open Docker Desktop
+
+1. Download Docker Desktop from https://www.docker.com/products/docker-desktop
+2. Install it and restart your computer if prompted
+3. Open Docker Desktop
+4. Wait until you see a green **Engine running** dot at the bottom left
+
+### Start the containers
+
+Open a terminal inside the `vedaai-backend` folder and run:
+
 ```bash
 docker-compose up -d
 ```
-This will start **vedaai-mongo** (Port: 27017) and **vedaai-redis** (Port: 6379).
 
-### **3. Backend Setup**
-Navigate to `vedaai-backend/` and create a `.env` file:
+You should see:
+```
+✓ Container vedaai-mongo   Running
+✓ Container vedaai-redis   Running
+```
+
+That's it. MongoDB is now running on port `27017` and Redis on port `6379`.
+
+> **Note:** You need to keep Docker Desktop open in the background whenever you run this project. The containers stop when Docker Desktop closes.
+
+---
+
+## Step 3 — Set up the Backend
+
+### Install dependencies
+
+```bash
+cd vedaai-backend
+npm install
+```
+
+### Create your .env file
+
+Copy the example file:
+
+```bash
+# Windows
+copy .env.example .env
+
+# Mac / Linux
+cp .env.example .env
+```
+
+Open `.env` and fill in your API keys:
+
 ```env
 PORT=4000
+NODE_ENV=development
+
 MONGODB_URI=mongodb://localhost:27017/vedaai
+
 REDIS_HOST=localhost
 REDIS_PORT=6379
-GEMINI_API_KEY=your_gemini_key_here
-GROQ_API_KEY=your_groq_key_here
+
+GEMINI_API_KEY=paste-your-gemini-key-here
+GROQ_API_KEY=paste-your-groq-key-here
+
 FRONTEND_URL=http://localhost:3000
 ```
-Install and start the server:
+
+---
+
+## Step 4 — Set up the Frontend
+
+### Install dependencies
+
 ```bash
+cd vedaai
 npm install
-npm run dev
 ```
 
-### **4. Worker Setup**
-Open a **new terminal** in `vedaai-backend/` and start the job processor:
-```bash
-npm run worker
-```
+### Create your .env.local file
 
-### **5. Frontend Setup**
-Navigate to `vedaai/` and create a `.env.local` file:
+Create a new file called `.env.local` inside the `vedaai` folder with this content:
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
 NEXT_PUBLIC_WS_URL=ws://localhost:4000/ws
 ```
-Install and start the frontend:
+
+---
+
+## Step 5 — Run everything
+
+You need **4 separate terminals** running at the same time. In VS Code, click the `+` button in the terminal panel to open new ones.
+
+**Terminal 1 — Start databases** (only needed first time or after restart)
 ```bash
-npm install
+cd vedaai-backend
+docker-compose up -d
+```
+
+**Terminal 2 — Start the backend server**
+```bash
+cd vedaai-backend
 npm run dev
 ```
 
-### **6. Access the App**
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Wait until you see:
+```
+✅ BullMQ queue 'generate-paper' ready
+✅ MongoDB connected
+✅ Redis connected
+🚀 VedaAI Backend running at http://localhost:4000
+🔌 WebSocket server at ws://localhost:4000/ws
+```
+
+**Terminal 3 — Start the worker**
+```bash
+cd vedaai-backend
+npm run worker
+```
+
+Wait until you see:
+```
+✅ MongoDB connected
+🚀 Worker started — listening for jobs on 'generate-paper'
+```
+
+**Terminal 4 — Start the frontend**
+```bash
+cd vedaai
+npm run dev
+```
+
+Wait until you see:
+```
+▲ Next.js ready
+✓ Local: http://localhost:3000
+```
 
 ---
 
-## 🔌 API Documentation
+## Step 6 — Test it
+
+1. Open http://localhost:3000 in your browser
+2. Click **Create Assignment**
+3. Fill in the form — subject, class, chapter, question types, marks
+4. Click **Next**, then **Generate Paper**
+5. You will see a generating screen
+6. After 15–30 seconds the paper appears automatically
+
+To verify the backend is healthy at any time:
+```bash
+http://localhost:4000/health
+```
+
+Should return:
+```json
+{ "status": "ok", "timestamp": "...", "uptime": 123 }
+```
+
+---
+
+## API Reference
+
 | Method | Route | Description |
-| :--- | :--- | :--- |
-| `POST` | `/assignments` | Creates an assignment and starts AI generation |
-| `GET` | `/assignments` | Fetches all assignments (from DB) |
-| `GET` | `/assignments/:id` | Fetches a single assignment result |
-| `DELETE` | `/assignments/:id` | Deletes an assignment |
-| `POST` | `/assignments/:id/regenerate` | Retriggers the worker for a new AI result |
+|---|---|---|
+| GET | `/health` | Health check |
+| POST | `/assignments` | Create assignment and queue generation |
+| GET | `/assignments` | List all assignments |
+| GET | `/assignments/:id` | Get single assignment with result |
+| DELETE | `/assignments/:id` | Delete assignment |
+| POST | `/assignments/:id/regenerate` | Re-generate paper for existing assignment |
+
+### POST /assignments — Request body
+
+```json
+{
+  "title": "Quiz on Electricity",
+  "subject": "Science",
+  "className": "8th",
+  "chapter": "Chemical Effects of Electric Current",
+  "dueDate": "2025-06-30",
+  "questionTypes": [
+    {
+      "type": "Multiple Choice Questions",
+      "numberOfQuestions": 4,
+      "marksPerQuestion": 1
+    },
+    {
+      "type": "Short Questions",
+      "numberOfQuestions": 5,
+      "marksPerQuestion": 2
+    }
+  ],
+  "instructions": "Focus on NCERT Chapter 14"
+}
+```
+
+### WebSocket events
+
+Connect to: `ws://localhost:4000/ws?assignmentId=<id>`
+
+Events you will receive:
+```json
+{ "type": "assignment:queued",      "assignmentId": "..." }
+{ "type": "assignment:processing",  "assignmentId": "..." }
+{ "type": "assignment:completed",   "assignmentId": "...", "payload": { ...result } }
+{ "type": "assignment:failed",      "assignmentId": "...", "payload": { "error": "..." } }
+```
 
 ---
 
-## 🤖 AI Inference Strategy
-To ensure **99.9% uptime** on paper generation, VedaAI implements a **Primary → Secondary fallback logic**:
+## Environment Variables
 
-1.  **Primary Model:** **Gemini 2.0 Flash** — chosen for its speed and high context window.
-2.  **Validation:** The system validates the AI response against a recursive JSON schema. 
-3.  **Fallback Model:** If Gemini encounters a rate limit or server error, the system automatically redirects the request to **Groq (Llama 3.3 70B)** which processes the same prompt on specialized LPUs for sub-second latency.
+### vedaai-backend/.env
+
+| Variable | Description | Example |
+|---|---|---|
+| `PORT` | Backend server port | `4000` |
+| `NODE_ENV` | Environment | `development` |
+| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/vedaai` |
+| `REDIS_HOST` | Redis host | `localhost` |
+| `REDIS_PORT` | Redis port | `6379` |
+| `GEMINI_API_KEY` | Gemini API key from aistudio.google.com | `AIza...` |
+| `GROQ_API_KEY` | Groq API key from console.groq.com | `gsk_...` |
+| `FRONTEND_URL` | Frontend URL for CORS | `http://localhost:3000` |
+
+### vedaai/.env.local
+
+| Variable | Description | Value |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | Backend API URL | `http://localhost:4000` |
+| `NEXT_PUBLIC_WS_URL` | WebSocket URL | `ws://localhost:4000/ws` |
 
 ---
 
-## 📄 License
-This project is licensed under the MIT License.
+## Common Errors
+
+**`Failed to create. Is the backend running?`**
+- Backend is not running. Start Terminal 2 (`npm run dev` in vedaai-backend)
+- Check that `.env.local` exists in the `vedaai` folder
+- Restart the frontend after creating `.env.local`
+
+**`PostCSS: module is not defined in ES module scope`**
+- Open `vedaai/postcss.config.mjs` and replace the entire content with:
+```js
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+```
+
+**`Gemini API error 429: quota exceeded`**
+- You have hit the free tier rate limit for Gemini
+- The system automatically falls back to Groq — this is expected behaviour
+- Wait a minute and try again, or use Groq exclusively
+
+**`Worker failed: Both AI providers failed`**
+- Check that `GEMINI_API_KEY` and `GROQ_API_KEY` are correctly set in `.env`
+- Make sure there are no extra spaces or quotes around the keys
+- Verify the keys are valid by testing them at their respective consoles
+
+**`Container vedaai-mongo not running`**
+- Open Docker Desktop and make sure it shows Engine running (green dot)
+- Run `docker-compose up -d` again from the `vedaai-backend` folder
+
+**Paper shows blank page / needs refresh**
+- This was a known bug — fixed in the latest version of `app/assignment/[id]/page.tsx`
+- Make sure you have the latest version of that file
 
 ---
-**Developed with ❤️ for Educators.**
+
+## How the AI generation works
+
+1. The worker builds a structured prompt from the assignment data
+2. It calls **Gemini 2.0 Flash** first (fast, reliable JSON output)
+3. If Gemini fails (rate limit, error) it automatically calls **Groq Llama 3.3 70B**
+4. If both fail the assignment is marked as `failed`
+5. The response is always parsed and validated as JSON before saving — the raw AI response is never rendered directly
+
+---
+
+Built with Next.js, Express, BullMQ, MongoDB, Redis, Gemini, and Groq.
