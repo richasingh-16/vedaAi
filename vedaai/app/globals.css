@@ -1,0 +1,78 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-orange: #f4623a;
+  --brand-dark: #0f0f14;
+  --bg-gradient-start: #f2f2f2;
+  --bg-gradient-end: #e4e4e4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: "Sora", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
+
+/* Animations */
+.animate-fade-up {
+  animation: fadeUp 0.4s ease forwards;
+}
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Stagger helpers */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.30s; }
+
+/* Print styles for exam paper */
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  body { background: white; }
+  .exam-paper {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}
