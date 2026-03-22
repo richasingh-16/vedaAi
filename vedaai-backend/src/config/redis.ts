@@ -2,12 +2,16 @@ import Redis from "ioredis";
 
 let redisClient: Redis | null = null;
 
+const isTLS = process.env.NODE_ENV === "production";
+
 export function getRedisClient(): Redis {
   if (redisClient) return redisClient;
 
   redisClient = new Redis({
     host: process.env.REDIS_HOST || "localhost",
     port: parseInt(process.env.REDIS_PORT || "6379"),
+    password: process.env.REDIS_PASSWORD,
+    tls: isTLS ? {} : undefined,
     maxRetriesPerRequest: null, // Required for BullMQ
     lazyConnect: true,
   });
@@ -23,6 +27,8 @@ export function createRedisConnection(): Redis {
   return new Redis({
     host: process.env.REDIS_HOST || "localhost",
     port: parseInt(process.env.REDIS_PORT || "6379"),
+    password: process.env.REDIS_PASSWORD,
+    tls: isTLS ? {} : undefined,
     maxRetriesPerRequest: null,
   });
 }

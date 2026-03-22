@@ -6,6 +6,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "start:worker": "node dist/queues/paperWorker.js",
     "worker": "tsx watch src/queues/paperWorker.ts"
   },
   "dependencies": {
