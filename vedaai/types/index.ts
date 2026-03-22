@@ -40,7 +40,7 @@ export interface Assignment {
   title: string;
   subject: string;
   className: string;
-  chapter: string;
+  chapter?: string;
   dueDate: string;
   assignedOn: string;
   questionTypes: QuestionTypeRow[];

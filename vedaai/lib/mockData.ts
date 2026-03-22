@@ -63,6 +63,7 @@ export const mockAssignments: Assignment[] = [
     title: "Quiz on Electricity",
     subject: "Science",
     className: "8th",
+    chapter: "Chemical Effects of Electric Current",
     dueDate: "2025-06-21",
     assignedOn: "2025-06-20",
     questionTypes: [
@@ -78,6 +79,7 @@ export const mockAssignments: Assignment[] = [
     title: "Quiz on Electricity",
     subject: "Science",
     className: "9th",
+    chapter: "Electricity",
     dueDate: "2025-06-21",
     assignedOn: "2025-06-20",
     questionTypes: [
@@ -91,6 +93,7 @@ export const mockAssignments: Assignment[] = [
     title: "Quiz on Electricity",
     subject: "Mathematics",
     className: "7th",
+    chapter: "Algebraic Expressions",
     dueDate: "2025-06-21",
     assignedOn: "2025-06-20",
     questionTypes: [
@@ -104,6 +107,7 @@ export const mockAssignments: Assignment[] = [
     title: "Quiz on Electricity",
     subject: "English",
     className: "6th",
+    chapter: "The Solar System",
     dueDate: "2025-06-21",
     assignedOn: "2025-06-20",
     questionTypes: [],
@@ -115,6 +119,7 @@ export const mockAssignments: Assignment[] = [
     title: "Quiz on Electricity",
     subject: "History",
     className: "10th",
+    chapter: "The Rise of Nationalism",
     dueDate: "2025-06-21",
     assignedOn: "2025-06-20",
     questionTypes: [],
@@ -126,6 +131,7 @@ export const mockAssignments: Assignment[] = [
     title: "Quiz on Electricity",
     subject: "Geography",
     className: "8th",
+    chapter: "Resources and Development",
     dueDate: "2025-06-21",
     assignedOn: "2025-06-20",
     questionTypes: [],
