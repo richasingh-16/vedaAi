@@ -24,8 +24,7 @@ const limiter = rateLimit({
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: FRONTEND_URL,
-    credentials: true,
+    origin: "*", // TEMP: allow all origins
   })
 );
 app.use(express.json({ limit: "10mb" }));
