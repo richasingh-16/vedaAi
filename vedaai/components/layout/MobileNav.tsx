@@ -2,35 +2,41 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Library, Wand2 } from "lucide-react";
+import { getRouteMatcher } from "next/dist/shared/lib/router/utils/route-matcher";
+import { LayoutGrid, CalendarCheck, Library, Sparkles } from "lucide-react";
 import clsx from "clsx";
 
 const items = [
-  { icon: Home, label: "Home", href: "/" },
-  { icon: Users, label: "My Groups", href: "/groups" },
+  { icon: LayoutGrid, label: "Home", href: "/" },
+  { icon: CalendarCheck, label: "Assignments", href: "/assignments" },
   { icon: Library, label: "Library", href: "/library" },
-  { icon: Wand2, label: "AI Toolkit", href: "/toolkit" },
+  { icon: Sparkles, label: "AI Toolkit", href: "/toolkit" },
 ];
 
 export default function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-brand-dark border-t border-white/10 z-40 no-print">
-      <div className="flex items-center justify-around px-2 py-2">
-        {items.map(({ icon: Icon, label, href }) => (
+    <nav className="md:hidden fixed bottom-4 left-4 right-4 bg-[#1A1A1A] rounded-[24px] z-40 no-print flex shadow-lg">
+      <div className="flex w-full items-center justify-between px-6 py-3">
+        {items.map(({ icon: Icon, label, href }) => {
+          const isActive = (pathname.startsWith(href) && href !== "/") || pathname === href || (href === "/assignments" && pathname === "/create");
+          return (
           <Link
             key={href}
             href={href}
             className={clsx(
-              "flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all",
-              pathname === href ? "text-white" : "text-gray-500"
+              "flex flex-col items-center gap-1 font-medium transition-all group",
+              isActive ? "text-white" : "text-[#888888]"
             )}
           >
-            <Icon size={20} />
-            <span className="text-[10px] font-medium">{label}</span>
+            <div className={clsx("flex items-center justify-center rounded-xl p-1 transition-all", isActive ? "" : "")}>
+               <Icon size={20} className={isActive ? "text-white" : "text-[#888888]"} strokeWidth={isActive ? 2.5 : 2} />
+            </div>
+            <span className="text-[10px] tracking-wide">{label}</span>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </nav>
   );

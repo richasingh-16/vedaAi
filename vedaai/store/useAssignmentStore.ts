@@ -5,6 +5,8 @@ import { mockAssignments } from "@/lib/mockData";
 const DEFAULT_QUESTION_TYPES: QuestionTypeRow[] = [
   { id: "qt-default-1", type: "Multiple Choice Questions", numberOfQuestions: 4, marksPerQuestion: 1 },
   { id: "qt-default-2", type: "Short Questions", numberOfQuestions: 3, marksPerQuestion: 2 },
+  { id: "qt-default-3", type: "Diagram/Graph-Based Questions", numberOfQuestions: 5, marksPerQuestion: 5 },
+  { id: "qt-default-4", type: "Numerical Problems", numberOfQuestions: 5, marksPerQuestion: 5 },
 ];
 
 const DEFAULT_FORM: CreateFormData = {
@@ -38,6 +40,7 @@ interface AssignmentStore {
   // Assignment actions
   addAssignment: (assignment: Assignment) => void;
   updateAssignment: (id: string, updates: Partial<Assignment>) => void;
+  removeAssignment: (id: string) => void;
   setGenerationStatus: (status: AssignmentStore["generationStatus"]) => void;
   setWsConnected: (connected: boolean) => void;
 
@@ -112,6 +115,11 @@ export const useAssignmentStore = create<AssignmentStore>((set, get) => ({
   updateAssignment: (id, updates) =>
     set((state) => ({
       assignments: state.assignments.map((a) => (a.id === id ? { ...a, ...updates } : a)),
+    })),
+
+  removeAssignment: (id) =>
+    set((state) => ({
+      assignments: state.assignments.filter((a) => a.id !== id),
     })),
 
   setGenerationStatus: (status) => set({ generationStatus: status }),

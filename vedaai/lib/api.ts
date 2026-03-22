@@ -43,14 +43,14 @@ export async function createAssignment(formData: CreateFormData): Promise<Assign
 }
 
 export async function fetchAssignments(): Promise<Assignment[]> {
-    const res = await fetch(`${API_URL}/assignments`);
+    const res = await fetch(`${API_URL}/assignments`, { cache: "no-store" });
     const json = await res.json();
     if (!res.ok || !json.success) throw new Error(json.error || "Failed to fetch assignments");
     return (json.data as Record<string, unknown>[]).map(toAssignment);
 }
 
 export async function fetchAssignment(id: string): Promise<Assignment> {
-    const res = await fetch(`${API_URL}/assignments/${id}`);
+    const res = await fetch(`${API_URL}/assignments/${id}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } });
     const json = await res.json();
     if (!res.ok || !json.success) throw new Error(json.error || "Assignment not found");
     return toAssignment(json.data);

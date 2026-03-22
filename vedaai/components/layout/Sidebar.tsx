@@ -30,24 +30,25 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-[260px] shrink-0 bg-white shadow-sidebar h-screen z-20">
+    <div className="hidden md:flex flex-col py-[13px] pl-[13px] h-screen shrink-0 relative z-30 bg-transparent">
+      <aside className="relative flex flex-col w-[260px] h-full bg-white rounded-[24px] shadow-[0_8px_40px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden">
       {/* Logo */}
-      <div className="p-6 pb-4">
+      <div className="px-6 pt-6 pb-6">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-brand-orange flex items-center justify-center shadow-md">
+          <div className="w-8 h-8 rounded-[10px] bg-[#ff5722] flex items-center justify-center shadow-sm">
             <span className="text-white font-bold text-sm">V</span>
           </div>
-          <span className="font-semibold text-[17px] tracking-tight text-brand-dark">VedaAI</span>
+          <span className="font-bold text-[18px] tracking-tight text-[#303030]">VedaAI</span>
         </div>
       </div>
 
       {/* Create Assignment */}
-      <div className="px-4 mb-2">
+      <div className="px-4 pb-6">
         <Link
           href="/create"
-          className="flex items-center gap-2 w-full bg-brand-dark text-white rounded-full px-4 py-2.5 text-sm font-medium hover:bg-black transition-colors"
+          className="flex items-center justify-center gap-2 w-full bg-[#2A2A2A] border-[3px] border-[#E76F51] text-white rounded-full py-2.5 text-[14px] font-semibold hover:bg-black transition-colors"
         >
-          <Plus size={15} strokeWidth={2.5} />
+          <Plus size={16} strokeWidth={3} className="text-white" />
           Create Assignment
         </Link>
       </div>
@@ -83,25 +84,30 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-surface-border p-4 space-y-2">
+      <div className="px-5 pb-6">
         <Link
           href="/settings"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all"
+          className="flex items-center gap-3 px-3 py-3 rounded-[12px] text-[15px] font-medium text-[#666666] hover:bg-[#F4F4F5] hover:text-[#1A1A1A] transition-all mb-1"
         >
-          <Settings size={17} className="text-gray-400" />
+          <Settings size={20} className="text-[#A3A3A3]" />
           Settings
         </Link>
         {/* User profile */}
-        <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-200 to-orange-400 flex items-center justify-center shrink-0">
-            <span className="text-white text-xs font-bold">D</span>
+        <div className="flex items-center gap-3 p-3 bg-[#F4F4F5] rounded-[16px] w-full">
+          <div className="w-[42px] h-[42px] rounded-full overflow-hidden bg-gray-200 shrink-0">
+             <img 
+               src="/images/2e5a797574651e700037a00834fc192cdff92aad.jpg" 
+               alt="Avatar" 
+               className="w-full h-full object-cover shrink-0"
+             />
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-brand-dark truncate">Delhi Public School</p>
-            <p className="text-xs text-gray-400 truncate">Bokaro Steel City</p>
+          <div className="min-w-0 pr-1">
+            <p className="text-[14px] font-bold text-[#1A1A1A] truncate leading-tight">Delhi Public School</p>
+            <p className="text-[13px] text-[#888888] font-medium truncate mt-[2px] leading-tight">Bokaro Steel City</p>
           </div>
         </div>
       </div>
     </aside>
+    </div>
   );
 }

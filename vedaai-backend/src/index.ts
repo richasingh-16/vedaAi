@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import http from "http";
 import { WebSocketServer } from "ws";
+import rateLimit from "express-rate-limit";
 
 import { connectDB } from "./config/db";
 import { getRedisClient } from "./config/redis";
@@ -12,6 +13,13 @@ import assignmentRoutes from "./routes/assignments";
 const app = express();
 const PORT = parseInt(process.env.PORT || "4000");
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+
+// ── Rate Limiter ──────────────────────────────────────────────────────────────
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // max 50 requests per 15 min per IP
+  message: { success: false, error: "Too many requests, slow down." }
+});
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.use(
@@ -33,7 +41,7 @@ app.get("/health", (_req, res) => {
 });
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-app.use("/assignments", assignmentRoutes);
+app.use("/assignments", limiter, assignmentRoutes);
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
 app.use((_req, res) => {

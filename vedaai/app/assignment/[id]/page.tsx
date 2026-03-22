@@ -31,42 +31,48 @@ export default function AssignmentOutputPage({
   const paperRef = useRef<HTMLDivElement>(null);
   const [showAnswerKey, setShowAnswerKey] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
-  const [loading, setLoading] = useState(!assignment);
+  const [downloading, setDownloading] = useState(false);
+  const [loading, setLoading] = useState(true); // always fetch on mount — list API omits `result`
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-
+    let mounted = true;
     const load = async () => {
       try {
         const a = await fetchAssignment(id);
-        addAssignment(a);
-        updateAssignment(id, a);
-
-        // If still processing, keep polling every 2 seconds
-        if (a.status === "pending" || a.status === "processing") {
-          interval = setInterval(async () => {
-            try {
-              const updated = await fetchAssignment(id);
-              updateAssignment(id, updated);
-              if (updated.status === "completed" || updated.status === "failed") {
-                clearInterval(interval);
-              }
-            } catch {
-              clearInterval(interval);
-            }
-          }, 2000);
+        if (mounted) {
+          addAssignment(a);
+          updateAssignment(id, a);
         }
       } catch {
-        router.push("/assignments");
+        if (mounted) router.push("/assignments");
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
-
     load();
+    return () => { mounted = false; };
+  }, [id]); // only re-run if ID changes
 
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (assignment && (assignment.status === "pending" || assignment.status === "processing")) {
+      interval = setInterval(async () => {
+        try {
+          const updated = await fetchAssignment(id);
+          updateAssignment(id, updated);
+          if (updated.status === "completed" || updated.status === "failed") {
+            setGenerationStatus(updated.status);
+            clearInterval(interval);
+          } else if (updated.status === "processing") {
+            setGenerationStatus("generating");
+          }
+        } catch {
+          clearInterval(interval);
+        }
+      }, 2000);
+    }
     return () => clearInterval(interval);
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, assignment?.status, updateAssignment, setGenerationStatus]);
 
   if (loading) {
     return (
@@ -124,8 +130,29 @@ export default function AssignmentOutputPage({
   };
 
   // ── Print / PDF ──────────────────────────────────────────────
-  const handleDownload = () => {
-    window.print();
+
+  const handleDownload = async () => {
+    if (!paperRef.current) return;
+    setDownloading(true);
+    try {
+      // Dynamically import html2pdf so it only loads on the client side when needed
+      const html2pdf = (await import("html2pdf.js")).default;
+      const element = paperRef.current;
+      const opt = {
+        margin:       [0.5, 0.5, 0.5, 0.5] as [number, number, number, number], // top, left, bottom, right
+        filename:     `${assignment?.title?.replace(/\s+/g, '_') || 'assignment'}.pdf`,
+        image:        { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error("Failed to generate PDF, falling back to print:", err);
+      window.print();
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const totalMarks = result.sections.reduce(
@@ -151,7 +178,7 @@ export default function AssignmentOutputPage({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleRegenerate}
-            disabled={regenerating}
+            disabled={regenerating || downloading}
             className="flex items-center gap-2 text-sm font-medium bg-white/10 hover:bg-white/20 text-white rounded-full px-4 py-2 transition-all disabled:opacity-50"
           >
             <RefreshCw size={14} className={regenerating ? "animate-spin" : ""} />
@@ -159,10 +186,17 @@ export default function AssignmentOutputPage({
           </button>
           <button
             onClick={handleDownload}
-            className="flex items-center gap-2 text-sm font-medium bg-white text-brand-dark rounded-full px-4 py-2 hover:bg-gray-100 transition-all"
+            disabled={downloading}
+            className="flex items-center gap-3 text-[14px] leading-snug font-semibold bg-white text-[#1a1a1a] rounded-[24px] px-6 py-2.5 hover:bg-gray-100 transition-all shadow-sm disabled:opacity-50"
           >
-            <Download size={14} />
-            Download as PDF
+            {downloading ? (
+              <RefreshCw size={16} strokeWidth={2.5} className="mt-0.5 animate-spin" />
+            ) : (
+              <Download size={16} strokeWidth={2.5} className="mt-0.5" />
+            )}
+            <span className="text-left font-bold tracking-wide">
+              {downloading ? "Generating..." : <><span className="hidden sm:inline">Download<br/>as PDF</span><span className="sm:hidden">Download</span></>}
+            </span>
           </button>
         </div>
       </div>
@@ -197,32 +231,34 @@ export default function AssignmentOutputPage({
 
         <div className="px-8 py-6">
           {/* Time + Marks row */}
-          <div className="flex items-center justify-between mb-3 text-sm">
-            <span className="text-gray-600">
-              <span className="font-medium">Time Allowed:</span> {result.timeAllowed}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-0 mb-4 text-[13px] md:text-sm">
+            <span className="text-gray-800 md:text-gray-600 font-medium">
+              Time Allowed: <span className="font-normal">{result.timeAllowed}</span>
             </span>
-            <span className="text-gray-600">
-              <span className="font-medium">Maximum Marks:</span> {result.maxMarks}
+            <span className="text-gray-800 md:text-gray-600 font-medium">
+              Maximum Marks: <span className="font-normal">{result.maxMarks}</span>
             </span>
           </div>
 
           {/* General instruction */}
-          <p className="text-sm text-gray-600 italic mb-5 border-b border-gray-100 pb-4">
-            {result.generalInstruction}
+          <p className="text-[13px] md:text-sm text-gray-800 md:text-gray-600 italic mb-6 border-b border-gray-100 pb-5">
+            {result.generalInstruction || "All questions are compulsory unless stated otherwise."}
           </p>
 
           {/* Student info */}
-          <div className="grid grid-cols-3 gap-6 mb-7">
-            {[
-              { label: "Name", width: "w-32" },
-              { label: "Roll Number", width: "w-24" },
-              { label: "Class & Section", width: "w-20" },
-            ].map(({ label, width }) => (
-              <div key={label} className="flex items-end gap-2">
-                <span className="text-sm text-gray-600 shrink-0">{label}:</span>
-                <div className={clsx("border-b border-gray-400 flex-1", width)} />
-              </div>
-            ))}
+          <div className="flex flex-col md:grid md:grid-cols-3 gap-3 md:gap-6 mb-8 mt-2">
+            <div className="flex items-end gap-2">
+              <span className="text-[13px] md:text-sm text-gray-800 md:text-gray-600 font-medium shrink-0">Name:</span>
+              <div className="border-b border-gray-800 md:border-gray-400 flex-1 md:w-32" />
+            </div>
+            <div className="flex items-end gap-2">
+              <span className="text-[13px] md:text-sm text-gray-800 md:text-gray-600 font-medium shrink-0">Roll Number:</span>
+              <div className="border-b border-gray-800 md:border-gray-400 flex-1 md:w-24" />
+            </div>
+            <div className="flex items-end gap-2">
+              <span className="text-[13px] md:text-sm text-gray-800 md:text-gray-600 font-medium shrink-0">Class: {result.className} Section:</span>
+              <div className="border-b border-gray-800 md:border-gray-400 flex-1 md:w-20" />
+            </div>
           </div>
 
           {/* Sections */}
