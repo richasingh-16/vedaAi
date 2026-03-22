@@ -47,7 +47,7 @@ router.post(
 
       // 2. Add job to BullMQ queue
       const job = await paperQueue.add(
-        "generate",
+        "generate" as any,
         { assignmentId: assignment._id.toString() },
         { jobId: `paper-${assignment._id}` }
       );
@@ -145,7 +145,7 @@ router.post("/:id/regenerate", async (req: Request, res: Response): Promise<void
     await assignment.save();
 
     const job = await paperQueue.add(
-      "generate",
+      "generate" as any,
       { assignmentId: assignment._id.toString() },
       { jobId: `paper-${assignment._id}-regen-${Date.now()}` }
     );

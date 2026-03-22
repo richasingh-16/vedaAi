@@ -133,7 +133,7 @@ async function callGemini(prompt: string): Promise<string> {
     throw new Error(`Gemini API error ${res.status}: ${err}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as any;
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error("Gemini returned empty response");
 
@@ -170,7 +170,7 @@ async function callGroq(prompt: string): Promise<string> {
     throw new Error(`Groq API error ${res.status}: ${err}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as any;
   const text = data?.choices?.[0]?.message?.content;
   if (!text) throw new Error("Groq returned empty response");
 

@@ -7,7 +7,7 @@ export interface PaperJobData {
 
 // Single shared queue instance
 export const paperQueue = new Queue<PaperJobData>("generate-paper", {
-  connection: createRedisConnection(),
+  connection: createRedisConnection() as any,
   defaultJobOptions: {
     attempts: 2,
     backoff: {

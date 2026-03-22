@@ -1,0 +1,29 @@
+﻿
+> vedaai-backend@1.0.0 build
+> tsc
+
+src/models/Assignment.ts(4,18): error TS2430: Interface 'IAssignment' incorrectly extends interface 'Document<ObjectId, any, any, Record<string, any>, {}>'.
+  Types of property '_id' are incompatible.
+    Type 'string' is not assignable to type 'ObjectId'.
+src/queues/paperQueue.ts(10,3): error TS2322: Type 'Redis' is not assignable to type 'ConnectionOptions'.
+  Type 'Redis' is not assignable to type 'ClusterOptions | Redis | Cluster'.
+    Type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/ioredis/built/Redis").default' is not assignable to type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/bullmq/node_modules/ioredis/built/Redis").default'.
+      Types of property 'options' are incompatible.
+        Type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/ioredis/built/redis/RedisOptions").RedisOptions' is not assignable to type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/bullmq/node_modules/ioredis/built/redis/RedisOptions").RedisOptions'.
+          Type 'RedisOptions' is not assignable to type 'CommonRedisOptions'.
+            The types returned by 'new Connector(...)' are incompatible between these types.
+              Type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/ioredis/built/connectors/AbstractConnector").default' is not assignable to type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/bullmq/node_modules/ioredis/built/connectors/AbstractConnector").default'.
+                Property 'connecting' is protected but type 'AbstractConnector' is not a class derived from 'AbstractConnector'.
+src/queues/paperWorker.ts(67,5): error TS2322: Type 'Redis' is not assignable to type 'ConnectionOptions'.
+  Type 'Redis' is not assignable to type 'ClusterOptions | Redis | Cluster'.
+    Type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/ioredis/built/Redis").default' is not assignable to type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/bullmq/node_modules/ioredis/built/Redis").default'.
+      Types of property 'options' are incompatible.
+        Type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/ioredis/built/redis/RedisOptions").RedisOptions' is not assignable to type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/bullmq/node_modules/ioredis/built/redis/RedisOptions").RedisOptions'.
+          Type 'RedisOptions' is not assignable to type 'CommonRedisOptions'.
+            The types returned by 'new Connector(...)' are incompatible between these types.
+              Type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/ioredis/built/connectors/AbstractConnector").default' is not assignable to type 'import("C:/Users/cbec/Downloads/vedaai-phase1/vedaai-backend/node_modules/bullmq/node_modules/ioredis/built/connectors/AbstractConnector").default'.
+                Property 'connecting' is protected but type 'AbstractConnector' is not a class derived from 'AbstractConnector'.
+src/routes/assignments.ts(50,9): error TS2345: Argument of type 'string' is not assignable to parameter of type 'ExtractNameType<DataTypeOrJob, DefaultNameType>'.
+src/routes/assignments.ts(148,7): error TS2345: Argument of type 'string' is not assignable to parameter of type 'ExtractNameType<DataTypeOrJob, DefaultNameType>'.
+src/services/aiService.ts(137,22): error TS2339: Property 'candidates' does not exist on type 'unknown'.
+src/services/aiService.ts(174,22): error TS2339: Property 'choices' does not exist on type 'unknown'.

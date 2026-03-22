@@ -64,7 +64,7 @@ async function startWorker(): Promise<void> {
   await connectDB();
 
   const worker = new Worker<PaperJobData>("generate-paper", processJob, {
-    connection: createRedisConnection(),
+    connection: createRedisConnection() as any,
     concurrency: 2, // Process up to 2 jobs in parallel
   });
 

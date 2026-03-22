@@ -2,7 +2,6 @@ import { Schema, model, Document } from "mongoose";
 import { AssignmentStatus, AssignmentResult, QuestionTypeInput } from "../types";
 
 export interface IAssignment extends Document {
-  _id: string;
   title: string;
   subject: string;
   className: string;
